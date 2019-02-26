@@ -101,10 +101,6 @@ public class LLWsXmppServiceWrapper {
                 String sKCToken = document.getElementsByTagName("sKCToken").item(0).getTextContent();
                 String sDomainName = document.getElementsByTagName("sDomainName").item(0).getTextContent();
                 
-                System.out.println(sJIDNode);
-                System.out.println(sKCToken);
-                System.out.println(sDomainName);
-                
                 String[] ret = new String[3];
                 ret[0] = sJIDNode;
                 ret[1] = sKCToken;
