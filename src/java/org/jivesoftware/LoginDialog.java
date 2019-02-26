@@ -113,6 +113,7 @@ import org.jivesoftware.sparkimpl.plugin.layout.LayoutSettings;
 import org.jivesoftware.sparkimpl.plugin.layout.LayoutSettingsManager;
 import org.jivesoftware.sparkimpl.settings.local.LocalPreferences;
 import org.jivesoftware.sparkimpl.settings.local.SettingsManager;
+import com.vtech.vte.im.kc.LLWsXmppServiceWrapper;
 
 /**
  * Dialog to log in a user into the Spark Server. The LoginDialog is used only
@@ -611,7 +612,7 @@ public class LoginDialog {
             // Check Settings
             if (localPref.isSavePassword()) {
 
-                String encryptedPassword = localPref.getPasswordForUser(getBareJid());
+                String encryptedPassword = localPref.getPasswordForUser(localPref.getLastUsername());
                 if (encryptedPassword != null) {
                     passwordField.setText(encryptedPassword);
                 }
@@ -672,7 +673,8 @@ public class LoginDialog {
          * @return the username.
          */
         private String getUsername() {
-            return StringUtils.escapeNode(usernameField.getText().trim());
+            //return StringUtils.escapeNode(usernameField.getText().trim());
+            return usernameField.getText().trim();
         }
 
         /**
@@ -772,11 +774,11 @@ public class LoginDialog {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-			usernameField.setText(username);
-			serverField.setText(host);
+			usernameField.setText(key);
+			serverField.setText(localPref.getServer());
 
 			try {
-			    passwordField.setText(localPref.getPasswordForUser(getBareJid()));
+			    passwordField.setText(localPref.getPasswordForUser(key));
 			    if(passwordField.getPassword().length<1) {
 				loginButton.setEnabled(false);
 			    }
@@ -894,9 +896,20 @@ public class LoginDialog {
         private void validateLogin() {
             final SwingWorker loginValidationThread = new SwingWorker() {
                 public Object construct() {
-                    setLoginUsername(getUsername());
-                    setLoginPassword(getPassword());
-                    setLoginServer(getServerName());
+                    
+                    String[] loginInfo = LLWsXmppServiceWrapper.getLoginInfo(
+                                    getUsername(), 
+                                    getPassword(), 
+                                    getServerName());
+                    
+                    setLoginUsername(loginInfo[0]);
+                    setLoginPassword(loginInfo[1]);
+                    setLoginServer(loginInfo[2]);                    
+                    
+//                    setLoginUsername(getUsername());
+//                    setLoginPassword(getPassword());
+//                    setLoginServer(getServerName());
+                    
                     boolean loginSuccessfull = beforeLoginValidations() && login();
                     if (loginSuccessfull) {
                         afterLogin();
@@ -1217,12 +1230,12 @@ public class LoginDialog {
             ChatStateManager.getInstance(SparkManager.getConnection());
 
             // Persist information
-            localPref.setLastUsername(getLoginUsername());
+            localPref.setLastUsername(this.getUsername());            
 
             // Check to see if the password should be saved.
             if (savePasswordBox.isSelected()) {
                 try {
-                    localPref.setPasswordForUser(getBareJid(), getPassword());
+                    localPref.setPasswordForUser(this.getUsername(), getPassword());
                 }
                 catch (Exception e) {
                     Log.error("Error encrypting password.", e);
