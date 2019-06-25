@@ -97,8 +97,6 @@ public class LLWsXmppServiceWrapper {
                 + "</soap:Body>"
                 + "</soap:Envelope>";
 
-        System.out.println(xmlPost);
-
         post.setRequestEntity(new StringRequestEntity(xmlPost));
 
         try {
@@ -112,15 +110,25 @@ public class LLWsXmppServiceWrapper {
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document document = builder.parse(new InputSource(new StringReader(xmlString)));
 
-                String sJIDNode = document.getElementsByTagName("sJIDNode").item(0).getTextContent();
-                String sKCToken = document.getElementsByTagName("sKCToken").item(0).getTextContent();
-                String sDomainName = document.getElementsByTagName("sDomainName").item(0).getTextContent();
+                if (document != null
+                        && document.getElementsByTagName("sJIDNode") != null
+                        && document.getElementsByTagName("sJIDNode").getLength() > 0
+                        && document.getElementsByTagName("sKCToken") != null
+                        && document.getElementsByTagName("sKCToken").getLength() > 0
+                        && document.getElementsByTagName("sDomainName") != null
+                        && document.getElementsByTagName("sDomainName").getLength() > 0) {
 
-                String[] ret = new String[3];
-                ret[0] = sJIDNode;
-                ret[1] = sKCToken;
-                ret[2] = sDomainName;
-                return ret;
+                    String sJIDNode = document.getElementsByTagName("sJIDNode").item(0).getTextContent();
+                    String sKCToken = document.getElementsByTagName("sKCToken").item(0).getTextContent();
+                    String sDomainName = document.getElementsByTagName("sDomainName").item(0).getTextContent();
+
+                    String[] ret = new String[3];
+                    ret[0] = sJIDNode;
+                    ret[1] = sKCToken;
+                    ret[2] = sDomainName;
+                    return ret;
+                }
+                return null;
             }
         } catch (IOException e) {
             e.printStackTrace();
