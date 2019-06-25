@@ -67,18 +67,8 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JPopupMenu;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.text.JTextComponent;
 
 import org.dom4j.Document;
@@ -227,11 +217,11 @@ public class LoginDialog {
     protected boolean beforeLoginValidations() {
     	return true;
     }
-    
+
     protected void afterLogin() {
         // Does noting by default - but can be overwritten by subclasses to provide additional
         // settings
-    }    
+    }
 
     protected ConnectionConfiguration retrieveConnectionConfiguration() {
         int port = localPref.getXmppPort();
@@ -262,22 +252,22 @@ public class LoginDialog {
         		localPref.getProxyUsername() : null;
         	String pPass = ModelUtil.hasLength(localPref.getProxyPassword()) ?
         		localPref.getProxyPassword() : null;
-        	
+
         	if (pHost != null && pPort != 0) {
-                   
+
         		if (pUser == null || pPass == null) {
-                                
+
         			proxyInfo = new ProxyInfo(pType, pHost, pPort, null, null);
         		} else {
-                               
+
         			proxyInfo = new ProxyInfo(pType, pHost, pPort, pUser, pPass);
-                                                                       
+
         		}
         	} else {
         		Log.error("No proxy info found but proxy type is enabled!");
         	}
         }
-        
+
         if (useSSL) {
             if (!hostPortConfigured) {
                 config = new ConnectionConfiguration(loginServer, 5223);
@@ -289,14 +279,14 @@ public class LoginDialog {
             }
             if(localPref.isProxyEnabled() &&  !hostPortConfigured)
             {
-                
+
                 config = new ConnectionConfiguration(loginServer,5223,proxyInfo);
             }
             else if(localPref.isProxyEnabled() &&  !hostPortConfigured)
             {
-                
+
                 config = new ConnectionConfiguration(localPref.getXmppHost(), port, loginServer,proxyInfo);
-            
+
             }
         }
         else {
@@ -306,21 +296,21 @@ public class LoginDialog {
                 config = new ConnectionConfiguration(loginServer);
             }
             else {
-                
+
                 config = new ConnectionConfiguration(localPref.getXmppHost(), port, loginServer);
             }
             }
             else
             {
                  if (!hostPortConfigured) {
-                     
+
                 config = new ConnectionConfiguration(loginServer,proxyInfo);
             }
             else {
-                
+
                 config = new ConnectionConfiguration(localPref.getXmppHost(), port, loginServer,proxyInfo);
             }
-            
+
             }
 
         }
@@ -348,14 +338,14 @@ public class LoginDialog {
         }
 
         boolean compressionEnabled = localPref.isCompressionEnabled();
-        config.setCompressionEnabled(compressionEnabled);            
+        config.setCompressionEnabled(compressionEnabled);
         if(ModelUtil.hasLength(localPref.getTrustStorePath())) {
         	config.setTruststorePath(localPref.getTrustStorePath());
         	config.setTruststorePassword(localPref.getTrustStorePassword());
         }
         return config;
     }
-    
+
     /**
      * Define Login Panel implementation.
      */
@@ -375,7 +365,7 @@ public class LoginDialog {
         private final RolloverButton loginButton = new RolloverButton();
         private final RolloverButton advancedButton = new RolloverButton();
         private final RolloverButton quitButton = new RolloverButton();
-	private final JCheckBox loginAsInvisibleBox = new JCheckBox();
+	    private final JCheckBox loginAsInvisibleBox = new JCheckBox();
 
         private final RolloverButton createAccountButton = new RolloverButton();
         private final RolloverButton passwordResetButton = new RolloverButton();
@@ -399,6 +389,14 @@ public class LoginDialog {
         private RolloverButton otherUsers = new RolloverButton(SparkRes.getImageIcon(SparkRes.PANE_UP_ARROW_IMAGE));
 
 
+        private final JLabel envLabel = new JLabel("KC env:");
+        private JRadioButton noneRadioButton = new JRadioButton("None");
+        private JRadioButton hkRadioButton = new JRadioButton("HK");
+        private JRadioButton deRadioButton = new JRadioButton("DE");
+        private JRadioButton prodRadioButton = new JRadioButton("RPOD");
+        private ButtonGroup btgrp = new ButtonGroup();
+        private JPanel radioButtonPanel = new JPanel();
+
         LoginPanel() {
             //setBorder(BorderFactory.createTitledBorder("Sign In Now"));
             ResourceUtils.resButton(savePasswordBox, Res.getString("checkbox.save.password"));
@@ -406,11 +404,11 @@ public class LoginDialog {
             ResourceUtils.resLabel(serverLabel, serverField, Res.getString("label.server"));
             ResourceUtils.resButton(createAccountButton, Res.getString("label.accounts"));
             ResourceUtils.resButton(passwordResetButton, Res.getString("label.passwordreset"));
-	    ResourceUtils.resButton(loginAsInvisibleBox, Res.getString("checkbox.login.as.invisible"));
+	        ResourceUtils.resButton(loginAsInvisibleBox, Res.getString("checkbox.login.as.invisible"));
 
             savePasswordBox.setOpaque(false);
             autoLoginBox.setOpaque(false);
-	    loginAsInvisibleBox.setOpaque(false);
+	        loginAsInvisibleBox.setOpaque(false);
             setLayout(GRIDBAGLAYOUT);
 
             // Set default visibility
@@ -425,13 +423,27 @@ public class LoginDialog {
             ssoServerLabel.setText("Server:");
             accountNameLabel.setFont(accountLabel.getFont().deriveFont(Font.BOLD));
             serverNameLabel.setFont(ssoServerLabel.getFont().deriveFont(Font.BOLD));
-
-
             accountNameLabel.setForeground(new Color(106, 127, 146));
             serverNameLabel.setForeground(new Color(106, 127, 146));
-
             otherUsers.setFocusable(false);
 
+
+
+            btgrp.add(noneRadioButton);
+            btgrp.add(hkRadioButton);
+            btgrp.add(deRadioButton);
+            btgrp.add(prodRadioButton);
+
+            radioButtonPanel.setOpaque(false);
+            noneRadioButton.setOpaque(false);
+            hkRadioButton.setOpaque(false);
+            deRadioButton.setOpaque(false);
+            prodRadioButton.setOpaque(false);
+
+            radioButtonPanel.add(noneRadioButton);
+            radioButtonPanel.add(hkRadioButton);
+            radioButtonPanel.add(deRadioButton);
+            radioButtonPanel.add(prodRadioButton);
 
             add(usernameLabel,
                     new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
@@ -452,7 +464,7 @@ public class LoginDialog {
                     new GridBagConstraints(1, 1, 1, 1,
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 5), 0, 0));
-            
+
             add(passwordLabel,
                     new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 5, 0));
@@ -461,40 +473,56 @@ public class LoginDialog {
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 0), 0, 0));
 
-
-            // Add Server Field Properties
-            add(serverLabel,
+            add(envLabel,
                     new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 5, 0));
-            add(serverField,
+
+            add(radioButtonPanel,
                     new GridBagConstraints(1, 2, 2, 1,
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 0), 0, 0));
 
+
+            // Add Server Field Properties
+            add(serverLabel,
+                    new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0,
+                            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 5, 0));
+            add(serverField,
+                    new GridBagConstraints(1, 3, 2, 1,
+                            1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+                            new Insets(5, 5, 0, 0), 0, 0));
+
             add(serverNameLabel,
-                    new GridBagConstraints(1, 2, 2, 1,
+                    new GridBagConstraints(1, 3, 2, 1,
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 5), 0, 0));
 
             add(headerLabel,
-                    new GridBagConstraints(0, 5, 2, 1, 1.0, 0.0,
+                    new GridBagConstraints(0, 6, 2, 1, 1.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 5, 5), 0, 0));
+
             if(!Default.getBoolean("HIDE_SAVE_PASSWORD_AND_AUTOLOGIN")) {
             add(savePasswordBox,
-                    new GridBagConstraints(1, 5, 2, 1, 1.0, 0.0,
+                    new GridBagConstraints(1, 6, 2, 1, 1.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
             add(autoLoginBox,
-                    new GridBagConstraints(1, 6, 2, 1, 1.0, 0.0,
+                    new GridBagConstraints(1, 7, 2, 1, 1.0, 0.0,
                             GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
             }
-	    add(loginAsInvisibleBox,
-                    new GridBagConstraints(1, 7, 2, 1, 1.0, 0.0,
+	        add(loginAsInvisibleBox,
+                    new GridBagConstraints(1, 8, 2, 1, 1.0, 0.0,
                             GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
 
             // Add button but disable the login button initially
             savePasswordBox.addActionListener(this);
             autoLoginBox.addActionListener(this);
-	    loginAsInvisibleBox.addActionListener(this);
+	        loginAsInvisibleBox.addActionListener(this);
+
+            noneRadioButton.addActionListener(this);
+            hkRadioButton.addActionListener(this);
+            deRadioButton.addActionListener(this);
+            prodRadioButton.addActionListener(this);
+            noneRadioButton.setSelected(true);
 
             if (!Default.getBoolean(Default.ACCOUNT_DISABLED)) {
                 buttonPanel.add(createAccountButton,
@@ -539,7 +567,7 @@ public class LoginDialog {
             cardPanel.add(progressBar, PROGRESS_BAR);
 
 
-            add(cardPanel, new GridBagConstraints(0, 8, 4, 1,
+            add(cardPanel, new GridBagConstraints(0, 9, 4, 1,
                     1.0, 1.0, GridBagConstraints.SOUTH, GridBagConstraints.HORIZONTAL,
                     new Insets(2, 2, 2, 2), 0, 0));
             loginButton.setEnabled(false);
@@ -619,12 +647,12 @@ public class LoginDialog {
                 loginButton.setEnabled(true);
             }
             autoLoginBox.setSelected(localPref.isAutoLogin());
-	    loginAsInvisibleBox.setSelected(localPref.isLoginAsInvisible());
+	        loginAsInvisibleBox.setSelected(localPref.isLoginAsInvisible());
             useSSO(localPref.isSSOEnabled());
             if (autoLoginBox.isSelected()) {
                 savePasswordBox.setEnabled(false);
                 autoLoginBox.setEnabled(false);
-		loginAsInvisibleBox.setEnabled(false);
+		        loginAsInvisibleBox.setEnabled(false);
                 validateLogin();
                 return;
             }
@@ -733,11 +761,11 @@ public class LoginDialog {
                 }
             }
             else if (e.getSource() == loginButton) {
-		            
-               
+
+
                     validateLogin();
-                
-                
+
+
             }
             else if (e.getSource() == advancedButton) {
                 final LoginSettingDialog loginSettingsDialog = new LoginSettingDialog();
@@ -1143,8 +1171,8 @@ public class LoginDialog {
                     sessionManager.setJID(connection.getUser());
                 }
                 catch (Exception xee) {
-                   
-                   
+
+
                     if (!loginDialog.isVisible()) {
                         loginDialog.setVisible(true);
                     }
@@ -1562,7 +1590,7 @@ public class LoginDialog {
     protected void setLoginServer(String loginServer) {
         this.loginServer = loginServer;
     }
-    
+
     protected ArrayList<String> getUsernames() {
         return _usernames;
     }
