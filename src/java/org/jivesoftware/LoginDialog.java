@@ -376,15 +376,14 @@ public class LoginDialog {
 
         private RolloverButton otherUsers = new RolloverButton(SparkRes.getImageIcon(SparkRes.PANE_UP_ARROW_IMAGE));
 
-
+        private RolloverButton envUsers = new RolloverButton(SparkRes.getImageIcon(SparkRes.PANE_UP_ARROW_IMAGE));
         private final JLabel envLabel = new JLabel("KC env:");
-        private JRadioButton noneRadioButton = new JRadioButton("None");
+        private JRadioButton noneRadioButton = new JRadioButton("Not KC");
         private JRadioButton hkRadioButton = new JRadioButton("HK");
         private JRadioButton deRadioButton = new JRadioButton("DE");
         private JRadioButton prodRadioButton = new JRadioButton("RPOD");
         private ButtonGroup btgrp = new ButtonGroup();
         private JPanel radioButtonPanel = new JPanel();
-
         private boolean hasLoginError = false;
         private String llLoginErrorMsg = "Something wrong happens in LL login service call.";
 
@@ -418,7 +417,6 @@ public class LoginDialog {
             serverNameLabel.setForeground(new Color(106, 127, 146));
             otherUsers.setFocusable(false);
 
-
             btgrp.add(noneRadioButton);
             btgrp.add(hkRadioButton);
             btgrp.add(deRadioButton);
@@ -435,39 +433,44 @@ public class LoginDialog {
             radioButtonPanel.add(deRadioButton);
             radioButtonPanel.add(prodRadioButton);
 
-            add(usernameLabel,
-                    new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-                            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 0, 0));
-            add(usernameField,
-                    new GridBagConstraints(1, 0, 2, 1,
-                            1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
-                            new Insets(5, 5, 0, 0), 0, 0));
 
-            add(otherUsers, new GridBagConstraints(3, 0, 1, 1,
+            add(envLabel,  new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                    GridBagConstraints.WEST, GridBagConstraints.NONE,
+                        new Insets(5, 5, 0, 5), 5, 0));
+
+            add(radioButtonPanel, new GridBagConstraints(1, 0, 2, 1, 1.0, 0.0,
+                    GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+                        new Insets(5, 5, 0, 0), 0, 0));
+
+            add(envUsers, new GridBagConstraints(3, 0, 1, 1,
                     0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                     new Insets(5, 0, 0, 0), 0, 0));
 
-            add(accountLabel,
+
+            add(usernameLabel,
                     new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 0, 0));
-            add(accountNameLabel,
-                    new GridBagConstraints(1, 1, 1, 1,
-                            1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
-                            new Insets(5, 5, 0, 5), 0, 0));
-
-            add(passwordLabel,
-                    new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-                            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 5, 0));
-            add(passwordField,
+            add(usernameField,
                     new GridBagConstraints(1, 1, 2, 1,
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 0), 0, 0));
 
-            add(envLabel,
+            add(otherUsers, new GridBagConstraints(3, 1, 1, 1,
+                    0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+                    new Insets(5, 0, 0, 0), 0, 0));
+
+            add(accountLabel,
+                    new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
+                            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 0, 0));
+            add(accountNameLabel,
+                    new GridBagConstraints(1, 2, 1, 1,
+                            1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
+                            new Insets(5, 5, 0, 5), 0, 0));
+
+            add(passwordLabel,
                     new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
                             GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 5, 0));
-
-            add(radioButtonPanel,
+            add(passwordField,
                     new GridBagConstraints(1, 2, 2, 1,
                             1.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL,
                             new Insets(5, 5, 0, 0), 0, 0));
@@ -575,6 +578,13 @@ public class LoginDialog {
             loginButton.addActionListener(this);
             advancedButton.addActionListener(this);
 
+            envUsers.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    getEnvPopup().show(envUsers, e.getX(), e.getY());
+                }
+            });
+
             otherUsers.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -599,6 +609,7 @@ public class LoginDialog {
             ResourceUtils.resButton(advancedButton, Res.getString("button.advanced"));
 
             // Load previous instances
+            String env = localPref.getEnv();
             String userProp = localPref.getLastUsername();
             String serverProp = localPref.getServer();
 
@@ -617,7 +628,11 @@ public class LoginDialog {
             }
 
             if (userProp != null) {
-                usernameField.setText(StringUtils.unescapeNode(userProp));
+                if ("NONE".equals(env)) {
+                    usernameField.setText(StringUtils.unescapeNode(userProp));
+                } else {
+                    usernameField.setText(userProp);
+                }
             }
             if (serverProp != null) {
                 serverField.setText(serverProp);
@@ -678,34 +693,48 @@ public class LoginDialog {
             if (Default.getBoolean("HOST_NAME_CHANGE_DISABLED"))
                 serverField.setEnabled(false);
 
-            String env = localPref.getEnv();
+
             switch (env) {
                 case "DE":
                     deRadioButton.setSelected(true);
+
+                    envUsers.setVisible(true);
+                    otherUsers.setVisible(false);
+
                     serverField.setEnabled(false);
                     serverLabel.setVisible(false);
                     serverField.setVisible(false);
                     break;
                 case "HK":
                     hkRadioButton.setSelected(true);
+
+                    envUsers.setVisible(true);
+                    otherUsers.setVisible(false);
+
                     serverField.setEnabled(false);
                     serverLabel.setVisible(false);
                     serverField.setVisible(false);
                     break;
                 case "PROD":
                     prodRadioButton.setSelected(true);
+
+                    envUsers.setVisible(true);
+                    otherUsers.setVisible(false);
+
                     serverField.setEnabled(false);
                     serverLabel.setVisible(false);
                     serverField.setVisible(false);
                     break;
                 default:
                     noneRadioButton.setSelected(true);
+
+                    envUsers.setVisible(false);
+                    otherUsers.setVisible(true);
+
                     serverLabel.setVisible(true);
                     serverField.setVisible(true);
                     serverField.setEnabled(true);
             }
-
-
         }
 
         /**
@@ -791,23 +820,70 @@ public class LoginDialog {
                     savePasswordBox.setSelected(true);
                 }
             } else if (e.getSource() == noneRadioButton) {
+
+                envUsers.setVisible(false);
+                otherUsers.setVisible(true);
+
                 serverLabel.setVisible(true);
                 serverField.setVisible(true);
                 serverField.setEnabled(true);
                 localPref.setEnv("NONE");
             } else if (e.getSource() == deRadioButton) {
+
+                envUsers.setVisible(true);
+                otherUsers.setVisible(false);
+
                 serverLabel.setVisible(false);
                 serverField.setVisible(false);
                 localPref.setEnv("DE");
             } else if (e.getSource() == hkRadioButton) {
+
+                envUsers.setVisible(true);
+                otherUsers.setVisible(false);
+
                 serverLabel.setVisible(false);
                 serverField.setVisible(false);
                 localPref.setEnv("HK");
             } else if (e.getSource() == prodRadioButton) {
+
+                envUsers.setVisible(true);
+                otherUsers.setVisible(false);
+
                 serverLabel.setVisible(false);
                 serverField.setVisible(false);
                 localPref.setEnv("PROD");
             }
+        }
+
+        private JPopupMenu getEnvPopup() {
+            JPopupMenu popup = new JPopupMenu();
+
+            for (final String username : localPref.getEnvUsersList()) {
+
+                JMenuItem menu = new JMenuItem(username);
+
+                menu.addActionListener(new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        usernameField.setText(username);
+
+                        try {
+                            passwordField.setText(localPref.getPasswordForUser(localPref.getEnv() + "_" + username));
+                            if (passwordField.getPassword().length < 1) {
+                                loginButton.setEnabled(false);
+                            } else {
+                                loginButton.setEnabled(true);
+                            }
+                        } catch (Exception e1) {
+                        }
+
+                    }
+                });
+
+                popup.add(menu);
+            }
+            return popup;
         }
 
         private JPopupMenu getPopup() {
@@ -816,8 +892,10 @@ public class LoginDialog {
 
                 JMenuItem menu = new JMenuItem(key);
 
+                //final String username = key.split("@")[0];
                 final String username = key.split("@")[0];
                 final String host = key.split("@")[1];
+
                 menu.addActionListener(new ActionListener() {
 
                     @Override
@@ -954,38 +1032,33 @@ public class LoginDialog {
             final SwingWorker loginValidationThread = new SwingWorker() {
                 public Object construct() {
 
-
                     String username = null;
                     String token = null;
                     String server = null;
 
-                    boolean llServiceResult = true;
-
                     String env = localPref.getEnv();
-                    switch (env) {
-                        case "DE":
-                        case "HK":
-                        case "PROD":
-                            String[] ret = LLWsXmppServiceWrapper.getLoginInfo(usernameField.getText().trim(), getPassword(), env);
-                            if (ret != null) {
-                                username = ret[0];
-                                token = ret[1];
-                                server = ret[2];
-                                hasLoginError = false;
+                    if ("NONE".equals(env)) {
+                        username = getUsername();
+                        token = getPassword();
+                        server = getServerName();
+                        hasLoginError = false;
+                    } else {
+                        String[] ret = LLWsXmppServiceWrapper.getLoginInfo(
+                                usernameField.getText().trim(),
+                                getPassword(),
+                                env);
 
-                                localPref.setPort("80");
-                                localPref.setXmppHost(server);
-                            } else {
-                                hasLoginError = true;
-                                llServiceResult = false;
-                            }
-                            break;
-                        default:
-                            username = getUsername();
-                            token = getPassword();
-                            server = getServerName();
+                        if (ret != null) {
+                            username = ret[0];
+                            token = ret[1];
+                            server = ret[2];
                             hasLoginError = false;
-                            break;
+
+                            localPref.setPort("80");
+                            localPref.setXmppHost(server);
+                        } else {
+                            hasLoginError = true;
+                        }
                     }
 
                     setLoginUsername(username);
@@ -1312,6 +1385,17 @@ public class LoginDialog {
 
                 setEnabled(true);
                 return false;
+            } else {
+
+                String env = localPref.getEnv();
+                if (!"NONE".equals(env)) {
+                    try {
+                        localPref.addEnvUser(usernameField.getText().trim());
+                        localPref.setPasswordForUser(env + "_" + usernameField.getText().trim(), getPassword());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
             // Since the connection and workgroup are valid. Add a ConnectionListener
@@ -1339,7 +1423,6 @@ public class LoginDialog {
 //            }
 
             localPref.setServer(serverField.getText());
-
 
             SettingsManager.saveSettings();
 

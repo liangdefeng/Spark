@@ -27,11 +27,7 @@ import org.jivesoftware.spark.PluginRes;
 import org.jivesoftware.spark.SparkManager;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import javax.swing.UIManager;
 
@@ -57,6 +53,46 @@ public class LocalPreferences {
 
     public Properties getProperties() {
         return props;
+    }
+
+    public List<String> getEnvUsersList() {
+        String env = getEnv();
+
+        String users = props.getProperty(env + "_users", "");
+        if ("".equals(users.trim())) {
+            return new ArrayList<String>();
+        }
+
+        String[] strArray = users.split(",");
+        List<String> retList = new ArrayList<>();
+
+        for (String val: strArray) {
+            retList.add(val);
+        }
+
+        return retList;
+    }
+
+    public void addEnvUser(String username) {
+
+        List<String> userList = getEnvUsersList();
+
+        List<String> newUserList = new ArrayList<>();
+        newUserList.add(username);
+        userList.removeAll(newUserList);
+
+        userList.add(username);
+        String valStr = null;
+        for (int i = 0; i < userList.size(); i++) {
+
+            String val = userList.get(i);
+            if (i > 0) {
+                valStr = valStr + "," + val;
+            } else {
+                valStr = val;
+            }
+        }
+        props.setProperty(getEnv() + "_users", valStr);
     }
 
     public String getEnv() {
@@ -317,7 +353,14 @@ public class LocalPreferences {
      * @return the username of the agent.
      */
     public String getLastUsername() {
-        return props.getProperty("username");
+        if ("NONE".equals(getEnv())) {
+            return props.getProperty("username");
+        } else {
+            if (getEnvUsersList().size() > 0)
+                return getEnvUsersList().get(getEnvUsersList().size() - 1);
+            else
+                return "";
+        }
     }
 
     /**
